@@ -1,0 +1,66 @@
+name: Precommit
+on:
+  push:
+  pull_request:
+jobs:
+  precommit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch entire commit history to get base ref for PRs
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.x'
+      - name: Run pre-commit checks
+        run: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          
+          # Track overall success
+          typeset -i overall_success=0
+          
+          # 1. Check code formatting
+          echo "Checking code formatting..."
+          if command -v gofmt &>/dev/null; then
+            if ! gofmt_output=$(gofmt -l . 2>&1); then
+              echo "Error: gofmt failed"
+              overall_success=1
+            elif [[ -n "$gofmt_output" ]]; then
+              echo "Error: Unformatted Go files found:"
+              echo "$gofmt_output"
+              overall_success=1
+            fi
+          fi
+          
+          # 2. Check build tags in all Go files
+          echo "Checking build tags..."
+          typeset -i tag_errors=0
+          # Find all Go files in the repository
+          while IFS= read -r -d $'\0' file; do
+            first_line=$(head -n1 "$file")
+            if [[ "$first_line" =~ ^//.*dlg.*$ ]]; then
+              if [[ ! "$first_line" =~ ^//go:build\ [^\ ] ]]; then
+                printf '\nError: Malformed build tag:\n'
+                printf '  File:     %s\n' "$file"
+                printf '  Found:    %s\n' "$first_line"
+                printf '  Expected: //go:build <expression>\n'
+                tag_errors=$((tag_errors + 1))
+              fi
+            fi
+          done < <(find . -name '*.go' -print0)
+          
+          if ((tag_errors > 0)); then
+            echo "Found $tag_errors build tag errors"
+            overall_success=1
+          fi
+          
+          # Final result
+          if ((overall_success == 0)); then
+            echo "All checks passed"
+            exit 0
+          else
+            echo "Checks failed"
+            exit 1
+          fi
