@@ -1,6 +1,7 @@
 <div align="center">
-<h1>dlg <a href="https://github.com/vvvvv/dlg/actions/workflows/tests.yml"><img src="https://github.com/vvvvv/dlg/actions/workflows/tests.yml/badge.svg?branch=main" /></a></h1>
-  <h3>Printf-Style Debugging with Zero-Cost in Production Builds</h3>
+    <h1>dlg <a href="https://github.com/vvvvv/dlg/actions/workflows/tests.yml"><img src="https://github.com/vvvvv/dlg/actions/workflows/tests.yml/badge.svg?branch=main" /></a></h1>
+    <h3><em>delog - /diːˈlɑːɡ/ </em></h3>
+    <h3>Printf-Style Debugging with Zero-Cost in Production Builds</h3>
 </div>
 
 **dlg** provides a minimal API for printf-style debugging - a lightweight logger that completely vanishes from production builds while providing rich debugging capabilities during development.  
@@ -14,6 +15,18 @@ When built without the `dlg` tag, all logging calls disappear entirely from your
 - ✨ **Minimalist API** - Exposes just two functions, `Printf` and `SetOutput`
 
 ### The Magic of Zero-Cost
+
+When compiled without the `dlg` build tag:
+
+- All calls to `dlg` compile to empty functions
+- Go linker completely eliminates these no-ops
+- Final binary contains no trace of logging code
+- Zero memory overhead, zero CPU impact
+
+### Getting Started
+```bash
+go get github.com/vvvvv/dlg
+```
 
 ```go
 package main
@@ -40,19 +53,6 @@ func main() {
 	dlg.Printf("continuing")
 }
 ```
-
-When compiled without the `dlg` build tag:
-
-- All calls to `dlg` compile to empty functions
-- Go linker completely eliminates these no-ops
-- Final binary contains no trace of logging code
-- Zero memory overhead, zero CPU impact
-
-### Getting Started
-```bash
-go get github.com/vvvvv/dlg
-```
-
 
 ### Activating Debug Mode
 
@@ -159,3 +159,67 @@ func main() {
 	fmt.Print(sb.Buffer.String())
 }
 ```
+
+### True Zero-Cost Elimination
+
+The term "zero-cost" isn't just a claim - it's a verifiable compiler behavior. When dlg is disabled, the Go toolchain performs complete dead code elimination.
+
+Consider this simple program:
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/vvvvv/dlg"
+)
+
+func main() {
+	fmt.Println("hello world")
+	dlg.Printf("hello from dlg")
+}
+
+When built *without* the `dlg` tag:
+
+```bash
+go build -o production_binary
+```
+
+The resulting disassembly (via `go tool objdump -s main.main production_binary`) shows:
+
+
+```assembly
+  ... [function prologue] ...
+  main.go:10        0x10009c6a8      b00001a5      ADRP 217088(PC), R5
+  main.go:10        0x10009c6ac      913480a5      ADD $3360, R5, R5
+  main.go:10        0x10009c6b0      f9001fe5      MOVD R5, 56(RSP)
+  main.go:10        0x10009c6b4      f0000265      ADRP 323584(PC), R5
+  main.go:10        0x10009c6b8      9135a0a5      ADD $3432, R5, R5
+  main.go:10        0x10009c6bc      f90023e5      MOVD R5, 64(RSP)
+  print.go:314      0x10009c6c0      b00006db      ADRP 888832(PC), R27
+  print.go:314      0x10009c6c4      f9479761      MOVD 3880(R27), R1
+  print.go:314      0x10009c6c8      90000280      ADRP 327680(PC), R0
+  print.go:314      0x10009c6cc      910c6000      ADD $792, R0, R0
+  print.go:314      0x10009c6d0      9100e3e2      ADD $56, RSP, R2
+  print.go:314      0x10009c6d4      b24003e3      ORR $1, ZR, R3
+  print.go:314      0x10009c6d8      aa0303e4      MOVD R3, R4
+  print.go:314      0x10009c6dc      97ffecf5      CALL fmt.Fprintln(SB)    ; Only this call (fmt.Println) remains
+  main.go:12        0x10009c6e0      f85f83fd      MOVD -8(RSP), R29
+  main.go:12        0x10009c6e4      f84507fe      MOVD.P 80(RSP), R30
+  main.go:12        0x10009c6e8      d65f03c0      RET
+  main.go:9         0x10009c6ec      aa1e03e3      MOVD R30, R3
+  main.go:9         0x10009c6f0      97ff3bbc      CALL runtime.morestack_noctxt.abi0(SB)
+  main.go:9         0x10009c6f4      17ffffe7      JMP main.main(SB)
+  main.go:9         0x10009c6f8      00000000      ?
+```
+
+
+The compiler eliminates `dlg` as if it was never imported.  
+
+
+*No instructions.*  
+*No references.*  
+*Zero memory allocations.*  
+*Zero CPU cycles used.*  
+*identical binary size to code without `dlg`.*  
+*True zero-cost.*
