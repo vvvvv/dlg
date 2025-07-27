@@ -123,7 +123,7 @@ DLG_NO_WARN=1 ./app-debug
 
 #### Concurrency Safety
 
-While `dlg.Printf` is safe for concurrent use, custom writers should implement [sync.Locker](see https://pkg.go.dev/sync#Locker).
+While `dlg.Printf` is safe for concurrent use, custom writers should implement [sync.Locker](https://pkg.go.dev/sync#Locker).
 
 ```go
 package main
