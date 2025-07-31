@@ -181,6 +181,7 @@ func main() {
 
 When built *without* the `dlg` tag:
 
+```
 ```bash
 go build -o production_binary
 ```
@@ -216,10 +217,67 @@ The resulting disassembly (via `go tool objdump -s main.main production_binary`)
 
 The compiler eliminates `dlg` as if it was never imported.  
 
+However, the Go compiler can only eliminate `dlg.Printf` calls if it can prove that the arguments themselves have no side effects and are not used elsewhere.  
+This has two important implications:
+1. **Referenced variables stay:** If a variable is used outside the `dlg.Printf` call, the computation remains - but the call itself is still removed.
+2. **Function calls are evaluated:** Even if `dlg.Printf` is eliminated, any argument expressions with potential side effects (e.g. function calls) are still evaluated.
 
+Let's look at practical examples.
+
+**✅ Referenced Variables - Printf Eliminated, Variable Remains**
+```go
+res := 69 * 42             // Used later -> remains
+dlg.Printf("res: %v", res) // Eliminated
+fmt.Println("result: ", res)
+```
+
+```assembly
+; res remains (used by fmt.Println)
+0x10009c6c8  d2816a40  MOVD $2898, R0   ; 69*42=2898 stored
+...
+; fmt.Println remains
+0x10009c6fc  97ffeced  CALL fmt.Fprintln(SB)
+```
+
+**✅ Unused Expressions - Fully Eliminated**
+
+```go
+res := 69 * 42                  // Eliminated
+dlg.Printf("res: %v", res)      // Eliminated
+dlg.Printf("calc: %v", 69 * 42) // Eliminated
+```
+
+```assembly
+; Entire function reduced to a single return:
+0x100067b60  d65f03c0  RET
+```
+
+**⚠️ Function Calls - Still Evaluated [^1]**
+
+```go
+// The call to fmt.Errorf is evaluated but the call to dlg.Printf is still eliminated
+dlg.Printf("call to fn: %v", fmt.Errorf("some error"))
+```
+
+
+```assembly
+; fmt.Errorf is still executed
+0x10009f21c  913ec000  ADD $4016, R0, R0
+0x10009f230  97ffd8e0  CALL fmt.Errorf(SB)
+```
+
+
+### ⚡️Rule of thumb:
+**Avoid placing function calls or expensive computations directly inside `dlg.Printf`.**
+
+As long as you follow this principle, `dlg` maintains its promise:  
 *No instructions.*  
 *No references.*  
 *Zero memory allocations.*  
 *Zero CPU cycles used.*  
 *identical binary size to code without `dlg`.*  
 *True zero-cost.*
+
+<hr />
+
+*[^1]: There's a bit more nuance to this - if a function is side-effect free and returns a basic type (e.g., `int`, `string`), the compiler may still eliminate the function call.*
