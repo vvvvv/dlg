@@ -178,10 +178,10 @@ func main() {
 	fmt.Println("hello world")
 	dlg.Printf("hello from dlg")
 }
+```
 
 When built *without* the `dlg` tag:
 
-```
 ```bash
 go build -o production_binary
 ```
@@ -252,7 +252,7 @@ dlg.Printf("calc: %v", 69 * 42) // Eliminated
 0x100067b60  d65f03c0  RET
 ```
 
-**⚠️ Function Calls - Still Evaluated [^1]**
+**⚠️ Function Calls - Still Evaluated[^1]**
 
 ```go
 // The call to fmt.Errorf is evaluated but the call to dlg.Printf is still eliminated
@@ -278,6 +278,4 @@ As long as you follow this principle, `dlg` maintains its promise:
 *identical binary size to code without `dlg`.*  
 *True zero-cost.*
 
-<hr />
-
-*[^1]: There's a bit more nuance to this - if a function is side-effect free and returns a basic type (e.g., `int`, `string`), the compiler may still eliminate the function call.*
+[^1]: There's a bit more nuance to this - if a function is side-effect free and returns a basic type (e.g., `int`, `string`), the compiler may still eliminate the function call.*
