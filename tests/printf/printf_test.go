@@ -4,8 +4,6 @@ package dlg_test
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"regexp"
@@ -111,59 +109,11 @@ func TestPrintfConcurrentWriter(t *testing.T) {
 	}
 }
 
-var encoder = base64.StdEncoding.WithPadding(base64.NoPadding)
-
-func randomString(n int) string {
-	randomBytes := make([]byte, 128)
-	_, err := rand.Read(randomBytes)
-	if err != nil {
-		panic(err)
-	}
-	dst := make([]byte, base64.StdEncoding.EncodedLen(len(randomBytes)))
-
-	encoder.Encode(dst, randomBytes)
-	return string(dst[:n])
-}
-
-func randomStrings(n int) []string {
-	s := make([]string, 1000)
-
-	for i := 0; i < len(s); i++ {
-		s[i] = randomString(n)
-	}
-
-	return s
-}
-
-func BenchmarkPrintf8(b *testing.B) {
-	var buf bytes.Buffer
-	dlg.SetOutput(&buf)
-
-	s := randomStrings(8)
-
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		dlg.Printf(s[i%len(s)])
-	}
-}
-
 func BenchmarkPrintf16(b *testing.B) {
 	var buf bytes.Buffer
 	dlg.SetOutput(&buf)
 
-	s := randomStrings(16)
-
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		dlg.Printf(s[i%len(s)])
-	}
-}
-
-func BenchmarkPrintf32(b *testing.B) {
-	var buf bytes.Buffer
-	dlg.SetOutput(&buf)
-
-	s := randomStrings(32)
+	s := internal.RandomStrings(16)
 
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
@@ -175,7 +125,7 @@ func BenchmarkPrintf64(b *testing.B) {
 	var buf bytes.Buffer
 	dlg.SetOutput(&buf)
 
-	s := randomStrings(64)
+	s := internal.RandomStrings(64)
 
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
@@ -187,11 +137,47 @@ func BenchmarkPrintf128(b *testing.B) {
 	var buf bytes.Buffer
 	dlg.SetOutput(&buf)
 
-	s := randomStrings(128)
+	s := internal.RandomStrings(128)
 
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		dlg.Printf(s[i%len(s)])
+	}
+}
+
+func BenchmarkPrintfWithFormatting16(b *testing.B) {
+	var buf bytes.Buffer
+	dlg.SetOutput(&buf)
+
+	s := internal.RandomStrings(16)
+
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		dlg.Printf(s[i%len(s)], i)
+	}
+}
+
+func BenchmarkPrintfWithFormatting64(b *testing.B) {
+	var buf bytes.Buffer
+	dlg.SetOutput(&buf)
+
+	s := internal.RandomStrings(64)
+
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		dlg.Printf(s[i%len(s)], i)
+	}
+}
+
+func BenchmarkPrintfWithFormatting128(b *testing.B) {
+	var buf bytes.Buffer
+	dlg.SetOutput(&buf)
+
+	s := internal.RandomStrings(128)
+
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		dlg.Printf(s[i%len(s)], i)
 	}
 }
 
@@ -202,19 +188,21 @@ type safeBuffer struct {
 
 var safeBuf = &safeBuffer{}
 
-func BenchmarkPrintf128Parallel(b *testing.B) {
-	s := randomStrings(128)
-	strCount := len(s)
-	dlg.SetOutput(safeBuf)
-
-	b.RunParallel(func(pb *testing.PB) {
-		i := 0
-		for pb.Next() {
-			if i == strCount {
-				i = 0
-			}
-			str := s[i]
-			dlg.Printf(str)
-		}
-	})
-}
+// TODO: find out whats happening here
+// sometimes there's a huge spike in Bytes/Op - why?
+// func BenchmarkPrintf128Parallel(b *testing.B) {
+// 	s := internal.RandomStrings(64)
+// 	strCount := len(s)
+// 	dlg.SetOutput(safeBuf)
+//
+// 	b.RunParallel(func(pb *testing.PB) {
+// 		i := 0
+// 		for pb.Next() {
+// 			if i == strCount {
+// 				i = 0
+// 			}
+// 			str := s[i]
+// 			dlg.Printf(str)
+// 		}
+// 	})
+// }

@@ -108,19 +108,23 @@ package main
 
 import (
   "fmt"
+  "os"
   "github.com/vvvvv/dlg"
 )
 
 func main(){
   fmt.Println("${test_str}")
+  dlg.StartTrace()
   dlg.Printf("message from dlg")
+  dlg.StopTrace()
+  dlg.SetOutput(os.Stdout)
 }
 
 END
 
 typeset bin_name="out"
 
-_test_header "building test code"
+_test_header "if code compiles without errors"
 typeset go_build_out
 go_build_out="$(go build -o "${bin_name}" 2>&1)"
 if [[ "$?" -ne 0 ]]; then
@@ -130,7 +134,7 @@ else
 fi
 
 
-_test_header "output"
+_test_header "if test string is being output"
 typeset test_output
 test_output="$(./${bin_name})"
 if [[ "${test_output}" != "${test_str}" ]]; then 
@@ -140,7 +144,7 @@ else
 fi
 
 
-_test_header "dlg.Printf not in compiled output"
+_test_header "if dlg API is not in compiled output when build without dlg tag"
 go tool objdump "${bin_name}" 2>/dev/null 1> objdump
 if grep --quiet 'dlg.Printf' 'objdump'; then
 # if ! go tool objdump "${bin_name}" | grep --quiet 'main'; then
@@ -152,7 +156,7 @@ fi
 # Delete binary to recompile with dlg tag
 rm "${bin_name}"
 
-_test_header "debug banner inside dlg builds"
+_test_header "if debug banner is being printed when build with dlg"
 go_build_out="$(go build -tags dlg -o "${bin_name}" 2>&1)"
 test_output="$(./${bin_name} 2>&1)"
 if ! grep --quiet 'DEBUG BUILD' <<<"${test_output}"; then 
@@ -161,7 +165,4 @@ else
   _test_ok
 fi
 
-
 _test_synopses 
-
-

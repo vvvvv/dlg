@@ -1,0 +1,66 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/vvvvv/dlg/tests/printf
+cpu: Apple M3 Pro
+BenchmarkPrintf16-12                   	  664735	       327.5 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  699079	       324.6 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  688155	       325.0 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  692906	       327.2 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  694678	       327.0 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  692240	       326.9 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  688887	       327.8 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  694276	       327.3 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  695316	       347.8 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf16-12                   	  697944	       327.0 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  673754	       332.3 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  677025	       339.8 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  677685	       334.1 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  671916	       333.1 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  673714	       334.9 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  678349	       333.1 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  682383	       332.7 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  676278	       331.4 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  685608	       332.4 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf64-12                   	  675603	       332.4 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  661794	       336.9 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  673754	       337.5 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  675603	       335.4 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  676786	       334.8 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  669805	       333.9 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  675421	       335.7 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  664927	       336.0 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  669260	       335.0 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  672440	       335.0 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintf128-12                  	  659544	       335.5 ns/op	     296 B/op	       4 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  446034	       495.1 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  464365	       492.7 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  465800	       492.3 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  467080	       497.0 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  463980	       498.8 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  462486	       496.1 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  457092	       491.1 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  456482	       496.0 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  469586	       491.3 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting16-12     	  462556	       494.3 ns/op	     328 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  425763	       513.0 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  438255	       510.3 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  437659	       516.1 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  432968	       509.7 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  435420	       512.6 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  427963	       509.3 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  432108	       511.4 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  432850	       510.0 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  429542	       513.1 ns/op	     385 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting64-12     	  441537	       511.1 ns/op	     384 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  403702	       553.0 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  405630	       551.8 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  398064	       551.3 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  398780	       551.1 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  401959	       553.9 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  400141	       551.9 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  405122	       552.3 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  389916	       553.0 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  403200	       550.4 ns/op	     449 B/op	       6 allocs/op
+BenchmarkPrintfWithFormatting128-12    	  403502	       552.8 ns/op	     449 B/op	       6 allocs/op
+PASS
+ok  	github.com/vvvvv/dlg/tests/printf	13.849s

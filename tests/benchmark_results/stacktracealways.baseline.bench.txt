@@ -1,0 +1,66 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/vvvvv/dlg/tests/stacktracealways
+cpu: Apple M3 Pro
+BenchmarkPrintfTraceAlways16-12                   	  156034	      1488 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  158491	      1486 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  156771	      1481 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  160177	      1493 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  153790	      1492 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  155814	      1500 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  155017	      1490 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  156136	      1482 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  152907	      1489 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways16-12                   	  157628	      1490 ns/op	     561 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  155919	      1498 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  158004	      1492 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  159169	      1500 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  155601	      1498 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  151498	      1497 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  154580	      1492 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  156847	      1489 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  153283	      1501 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  156454	      1495 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways64-12                   	  155238	      1494 ns/op	     562 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  154558	      1505 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  154057	      1497 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  152409	      1499 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  155166	      1505 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  155720	      1504 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  151924	      1504 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  157722	      1499 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  155509	      1503 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  155644	      1493 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfTraceAlways128-12                  	  155073	      1499 ns/op	     563 B/op	       6 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  165030	      1415 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  164479	      1413 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  161323	      1410 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  166334	      1417 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  165150	      1416 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  162272	      1417 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  164107	      1424 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  168145	      1416 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  165014	      1416 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways16-12     	  168630	      1409 ns/op	     593 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  161521	      1440 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  160111	      1447 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  160725	      1448 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  160179	      1439 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  163059	      1440 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  161158	      1442 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  159277	      1446 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  160363	      1435 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  162991	      1440 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways64-12     	  158264	      1441 ns/op	     650 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  155191	      1484 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  158889	      1478 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  156639	      1487 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  158084	      1484 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  159184	      1482 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  157016	      1486 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  156504	      1482 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  157998	      1480 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  155112	      1482 ns/op	     716 B/op	       8 allocs/op
+BenchmarkPrintfWithFormattingTraceAlways128-12    	  156367	      1479 ns/op	     716 B/op	       8 allocs/op
+PASS
+ok  	github.com/vvvvv/dlg/tests/stacktracealways	14.960s

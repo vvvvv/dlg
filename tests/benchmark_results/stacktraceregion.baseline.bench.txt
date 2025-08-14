@@ -1,0 +1,66 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/vvvvv/dlg/tests/stacktraceregion
+cpu: Apple M3 Pro
+BenchmarkPrintfWithRegion16-12                    	   97921	      2357 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	   99145	      2357 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	   99495	      2361 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	  102667	      2360 ns/op	    1313 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	   99608	      2356 ns/op	    1313 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	  100038	      2352 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	  101982	      2349 ns/op	    1313 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	  101299	      2352 ns/op	    1313 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	  101356	      2353 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion16-12                    	   99660	      2354 ns/op	    1313 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	  100665	      2355 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	   99675	      2358 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	  100634	      2359 ns/op	    1313 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	   98767	      2363 ns/op	    1313 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	  100252	      2355 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	   99363	      2366 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	  100363	      2353 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	   99505	      2367 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	  100146	      2355 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegion64-12                    	   99794	      2368 ns/op	    1314 B/op	       8 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   71858	      3268 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72444	      3270 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72727	      3264 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72656	      3257 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72261	      3266 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   73155	      3258 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72758	      3270 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72054	      3265 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72150	      3270 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop16-12           	   72757	      3264 ns/op	    1939 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   72344	      3261 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   72361	      3261 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   71476	      3284 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   72309	      3279 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   72030	      3277 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   72450	      3260 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   71744	      3264 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   71991	      3282 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   72802	      3280 ns/op	    1941 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStop64-12           	   71098	      3273 ns/op	    1942 B/op	      15 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   73630	      3223 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   74010	      3215 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   73924	      3213 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   72540	      3235 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   73609	      3206 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   73185	      3209 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   73526	      3246 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   73690	      3233 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   73581	      3234 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey16-12    	   70851	      3236 ns/op	    1803 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72043	      3232 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   73339	      3213 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72700	      3249 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72750	      3230 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72753	      3238 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72826	      3246 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72552	      3232 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72879	      3229 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   73000	      3240 ns/op	    1805 B/op	      19 allocs/op
+BenchmarkPrintfWithRegionStartStopWithKey64-12    	   72884	      3238 ns/op	    1805 B/op	      19 allocs/op
+PASS
+ok  	github.com/vvvvv/dlg/tests/stacktraceregion	16.052s

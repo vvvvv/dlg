@@ -9,18 +9,22 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
+
+const stackBufSize = 1024
 
 var (
 	// Initial Printf buffer size
 	bufSize = 128
 
-	// DLG_STACKTRACE must be set using linker flags only:
+	// DLG_STACKTRACE and DLG_COLORS must be set using linker flags only:
 	// e.g. go build -tags dlg -ldflags "-X github.com/vvvvv/dlg.DLG_STACKTRACE=ALWAYS"
-	// Packages importing dlg MUST NOT read from or write to this variable - doing so will result in a compilation error when the dlg build tag is omitted.
+	// Packages importing dlg MUST NOT read from or write to this variable - doing so won't have any effect and will result in a compilation error when the dlg build tag is omitted.
 	DLG_STACKTRACE = ""
+	DLG_COLOR      = ""
+
+	termColor []byte
 )
 
 // Include stack trace on error or on every call to Printf
@@ -29,6 +33,7 @@ var stackflags = 0
 const (
 	onerror = 1 << iota
 	always
+	region
 )
 
 // Buffers for Printf
@@ -40,13 +45,22 @@ func Printf(f string, v ...any) {
 	b := bufPool.Get().([]byte)
 
 	formatInfo(&b)
-	f += "\n" // Without this we get an 'non-constant format string in call' error when v is left empty. Annoying
-	b = fmt.Appendf(b, f, v...)
+	if len(v) == 0 && strings.IndexByte(f, '%') < 0 {
+		// If there's no formatting we take a fast path
+		b = append(b, f...)
+		b = append(b, '\n')
+	} else {
+		f += "\n" // Without this we get an 'non-constant format string in call' error when v is left empty. Annoying
+		b = fmt.Appendf(b, f, v...)
+	}
 
 	if stackflags != 0 &&
 		((stackflags&onerror != 0 && hasError(v)) ||
 			(stackflags&always != 0)) {
-		writeStack(&b)
+
+		if (stackflags&region != 0 && inTracingRegion(1)) || (stackflags&region == 0) {
+			writeStack(&b)
+		}
 	}
 
 	writeOutput(b)
@@ -61,85 +75,12 @@ func Printf(f string, v ...any) {
 	bufPool.Put(b)
 }
 
-var stackBufSize uint32 = 1024
-
-const maxStackTraceBufferSize uint32 = 1 << 20 // 1MB
-
-// writeStack appends the stack trace to the buffer.
-// Stack traces exceeding maxStackTraceBufferSize are truncated.
-//
-// Implementation detail:
-// writeStack uses stackBufSize as the initial buffer size for stack traces.
-// This value may be increased during execution if a stack trace exceeds the current buffer capacity.
-//
-// Updates to stackBufSize are guarded by sync/atomic to ensure safe concurrent modification.
-// IMPORTANT: stackBufSize may contain stale values as reads are NOT guarded by sync/atomic!
-// This is acceptable because stackBufSize is only used as a starting hint for buffer allocation.
-// This is a performance optimization to save the overhead of calls to atomic.Read - eventually the correct value is going to get read.
-func writeStack(buf *[]byte) {
-	var b []byte
-	var n int
-	bufn := stackBufSize
-	for ; bufn <= maxStackTraceBufferSize; bufn *= 2 {
-		b = make([]byte, bufn)
-		n = runtime.Stack(b, false)
-		if n < len(b) {
-			*buf = append(*buf, b[:n]...)
-			*buf = append(*buf, '\n')
-			atomic.StoreUint32(&stackBufSize, bufn)
-			return
-		}
-	}
-
-	*buf = append(*buf, b[:n]...)
-	*buf = append(*buf, " [...] [ TRUNCATED ]\n"...)
-	// TODO: should we call atomic.StoreUint32 here or treat this very large stack trace as an outlier?
-}
-
-// hasError returns whether any argument is an error.
-func hasError(args []any) bool {
-	for i := len(args) - 1; i >= 0; i-- {
-		if _, ok := args[i].(error); ok {
-			return true
-		}
-	}
-	return false
-}
-
-// Calldepth for reporting file and line number
-// 0 = callsite()
-// 1 = formatInfo()
-// 2 = Printf()
-// 3 = caller of Printf
-const calldepth = 3
-
-func callsite(buf *[]byte) {
-	_, file, line, ok := runtime.Caller(calldepth)
-	if !ok {
-		file = "no_file"
-		line = 0
-	} else {
-		for i := len(file) - 1; i > 0; i-- {
-			if file[i] == '/' {
-				file = file[i+1:]
-				break
-			}
-		}
-	}
-
-	*buf = append(*buf, file...)
-	*buf = append(*buf, ':')
-	pad(buf, line, -1)
-	*buf = append(*buf, ": "...)
-}
-
 // Set on package init
 var timeStart time.Time
 
 // formatInfo appends timestamp, elapsed time, and source location to the buffer.
 func formatInfo(buf *[]byte) {
 	now := time.Now().UTC()
-	// s := now.Sub(timeStart)
 	since := now.Sub(timeStart).String()
 
 	// Time in HH:MM:SS
@@ -153,12 +94,6 @@ func formatInfo(buf *[]byte) {
 
 	// Source file, line number
 	callsite(buf)
-}
-
-func elapsed(buf *[]byte, since *string) {
-	*buf = append(*buf, " ["...)
-	*buf = append(*buf, *since...)
-	*buf = append(*buf, "] "...)
 }
 
 // padTime formats hours, minutes, seconds as two digit values
@@ -177,12 +112,18 @@ func padTime(buf *[]byte, i int, delim byte) {
 	}
 }
 
+func elapsed(buf *[]byte, since *string) {
+	*buf = append(*buf, " ["...)
+	*buf = append(*buf, *since...)
+	*buf = append(*buf, "] "...)
+}
+
 // pad i with zeros according to the specified width
 func pad(buf *[]byte, i int, width int) {
 	width -= 1
 	var b [20]byte
 	bp := len(b) - 1
-	_ = b[bp]
+	// _ = b[bp]
 	for ; (i >= 10 || width >= 1) && bp >= 0; width, bp = width-1, bp-1 {
 		q := i / 10
 		b[bp] = byte('0' + i - q*10)
@@ -192,10 +133,62 @@ func pad(buf *[]byte, i int, width int) {
 	*buf = append(*buf, b[bp:]...)
 }
 
+// callsite Appends the filename and line number.
+// It optionally colors the output.
+func callsite(buf *[]byte) {
+	// Calldepth skips n frames for reporting the correct file and line number
+	// 0 = runtime -> extern.go
+	// 1 = callsite -> printf.go
+	// 2 = formatInfo -> printf.go
+	// 3 = Printf -> printf.go
+	// 4 = callerFn
+	const calldepth = 4
+	pcs := make([]uintptr, 1)
+	n := runtime.Callers(calldepth, pcs)
+
+	fileName := "no_file"
+	lineNr := 0
+	if n != 0 {
+		frames := runtime.CallersFrames(pcs)
+		frame, _ := frames.Next()
+
+		fileName = frame.File
+		for i := len(fileName) - 1; i > 0; i-- {
+			if fileName[i] == '/' {
+				fileName = fileName[i+1:]
+				break
+			}
+		}
+
+		lineNr = frame.Line
+	}
+
+	// File name:line number
+	colorizeOrDont(buf)
+	*buf = append(*buf, fileName...)
+	*buf = append(*buf, ':')
+	pad(buf, lineNr, -1)
+	resetColorOrDont(buf)
+	*buf = append(*buf, ": "...)
+}
+
+// hasError returns whether any argument is an error.
+func hasError(args []any) bool {
+	for i := len(args) - 1; i >= 0; i-- {
+		if _, ok := args[i].(error); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// writeOutput is the default output writer.
+// This function gets set by SetOutput.
 var writeOutput = func(buf []byte) (n int, err error) {
 	return os.Stderr.Write(buf)
 }
 
+// Protects calls to SetOutput
 var mu sync.Mutex
 
 // SetOutput sets the output destination for Printf.
@@ -223,9 +216,8 @@ func SetOutput(w io.Writer) {
 	}
 }
 
-const envPrefix = "DLG_"
-
 func env(name string) (v string, ok bool) {
+	const envPrefix = "DLG_"
 	v, ok = os.LookupEnv(envPrefix + name)
 	return strings.ToLower(v), ok
 }
@@ -237,8 +229,15 @@ func init() {
 
 	// Warmup runtime.Caller and pre init the buffer pool.
 	defer func() {
+		// Warmup runtime.Caller
 		runtime.Caller(0)
+
+		// Pre init buffer pool
 		bufPool.Put(make([]byte, 0, bufSize))
+
+		// Initialize trace region store
+		callers := make([]caller, 0, 16)
+		callersStore.Store(callers)
 	}()
 
 	// Controls whether the debug banner is printed at startup.
@@ -253,9 +252,21 @@ func init() {
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 - DLG_STACKTRACE=ERROR   show stack traces on errors
 - DLG_STACKTRACE=ALWAYS  show stack traces always
+- DLG_STACKTRACE=REGION  show stack traces in trace regions 
 - DLG_NO_WARN=1          disable this message (use at your own risk)
 
 `)
+	}
+
+	// Check if output should get colorized
+	if color, ok := colorArgToTermColor(DLG_COLOR); ok {
+		if _, noColor := os.LookupEnv("NO_COLOR"); noColor {
+			// Respect NO_COLOR
+		} else {
+			termColor = color
+			colorizeOrDont = colorize
+			resetColorOrDont = colorReset
+		}
 	}
 
 	// check if stack traces should get generated
@@ -265,23 +276,71 @@ func init() {
 			return
 		}
 	}
-	stacktrace = strings.TrimSpace(strings.ToLower(stacktrace))
 
-	unrecognizedArg := true
-	if len(stacktrace) >= 3 {
-		switch stacktrace[:3] {
-		case "err":
-			stackflags |= onerror
-			bufSize += int(stackBufSize)
-			unrecognizedArg = false
-		case "alw":
-			stackflags |= always
-			bufSize += int(stackBufSize)
-			unrecognizedArg = false
-		default:
+	// TODO: Should we fail hard if there's an invalid stack trace argument?
+	// Notify the user about unrecognized stack trace arguments but use valid ones regardless.
+	var err error
+	stackflags, err = parseTraceArgs(stacktrace)
+	if stackflags != 0 {
+		// Increase initial buffer size to accommodate stack traces
+		bufSize += int(stackBufSize)
+	}
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, " dlg: Invalid Argument %v\n", err)
+	}
+}
+
+func parseTraceArgs(arg string) (stackflags int, err error) {
+	args := strings.Split(strings.ToLower(arg), ",")
+
+	if len(args) > 2 {
+		err = fmt.Errorf("DLG_STACKTRACE: too many arguments")
+		return
+	}
+
+	// Should be a []error but errors.Join separates errors with newlines.
+	// We want them seperated by ',' so we have to fall back to strings.Join here.
+	var invalidArgsErr []string
+
+	for i := 0; i < len(args); i++ {
+		flag, parseErr := parseTraceOption(args[i])
+		if parseErr != nil {
+			invalidArgsErr = append(invalidArgsErr, parseErr.Error())
+		} else {
+			stackflags |= flag
 		}
 	}
-	if len(stacktrace) != 0 && unrecognizedArg {
-		fmt.Fprintf(os.Stderr, "dlg: DLG_STACKTRACE set to '%s'. Did you mean 'ERROR' or 'ALWAYS'?\n\n", stacktrace)
+
+	if len(invalidArgsErr) > 0 {
+		err = fmt.Errorf("DLG_STACKTRACE: %s.\n", strings.Join(invalidArgsErr, ", "))
 	}
+	return
+}
+
+func parseTraceOption(opt string) (stackflag int, err error) {
+	const (
+		traceOptError  = "err"
+		traceOptAlways = "alw"
+		traceOptRegion = "reg"
+	)
+
+	err = fmt.Errorf("invalid argument %q", opt)
+	if len(opt) < 3 {
+		return
+	}
+
+	switch opt[:3] {
+	case traceOptError:
+		stackflag |= onerror
+		err = nil
+	case traceOptAlways:
+		stackflag |= always
+		err = nil
+	case traceOptRegion:
+		stackflag |= region
+		err = nil
+	}
+
+	return
 }

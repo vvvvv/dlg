@@ -11,8 +11,9 @@ When built without the `dlg` tag, all logging calls disappear entirely from your
 - 🚀 **True zero-cost abstraction** - Logging calls completely disappear from production binaries  
 - ⚡️ **Near-zero overhead** - Performance-focused design for debug builds  
 - 🔍 **Smart stack traces** - Runtime-configurable stack trace generation  
-- 🔒 **Concurrent-safe by design** - Custom writers simply implement `sync.Locker` to be safe
-- ✨ **Minimalist API** - Exposes just two functions, `Printf` and `SetOutput`
+- 🔒 **Concurrency-safe by design** - Custom writers simply implement `sync.Locker` to be safe
+- ✨ **Minimalist API** - Only `Printf`, and a couple of utility functions
+- 🎨 **Colorize Output** - Highlight output for better visibility in noisy output
 
 ### The Magic of Zero-Cost
 
@@ -22,6 +23,8 @@ When compiled without the `dlg` build tag:
 - Go linker completely eliminates these no-ops
 - Final binary contains no trace of logging code
 - Zero memory overhead, zero CPU impact
+
+For the full technical breakdown, see [True Zero-Cost Elimination.](#true-zero-cost-elimination)
 
 ### Getting Started
 ```bash
@@ -65,12 +68,25 @@ go build -o app
 go build -tags dlg -o app-debug
 ```
 
-#### Debug build output:
+**Normal Output**  
+
+```bash
+$ go build -o app
+./app
+```
 
 ```
+starting...
+```
+
+**Debug Build Output**
+
+```bash
+go build -tags dlg -o app-debug
 ./app-debug
+```
 
-
+```
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 * * * * * * * * * * * * * *  DEBUG BUILD  * * * * * * * * * * * * * *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -84,44 +100,263 @@ starting...
 01:28:27 [23µs] main.go:22: continuing
 ```
 
-#### Stack Trace output:
+**Stack Trace Output**
 
 ```bash
+go build -tags dlg -o app-debug
 DLG_STACKTRACE=ERROR ./app-debug
+```
 
+```
 # [Debug Banner omitted]
 starting...
 01:31:34 [2µs] main.go:16: executing risky operation
 01:31:34 [21µs] main.go:19: something failed: unexpected error
-goroutine 1 [running]:
-github.com/vvvvv/dlg.writeStack(0x14000104ec0)
-    /Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:86 +0x84
-github.com/vvvvv/dlg.Printf({0x1002d25f4, 0x14}, {0x14000104f18, 0x1, 0x1})
-    /Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:50 +0x170
 main.main()
     /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example01/main.go:19 +0xc0
-
 01:31:34 [38µs] main.go:22: continuing
 ```
 
-#### Configuration
+### Tracing Regions <sup>experimental</sup>
+Sometimes you only want stack traces for a specific area of your code while investigating an issue.
+Tracing regions let you define those boundaries.
 
-```bash
-# Runtime configuration
-DLG_STACKTRACE=ERROR  ./app-debug   # Traces on errors only
-DLG_STACKTRACE=ALWAYS ./app-debug   # Traces on every call
+`dlg.StartTrace()` begins a tracing region, and `dlg.StopTrace()` ends it.  
+When `DLG_STACKTRACE` is set to `REGION,ALWAYS`, `dlg.Printf` will print a stack trace only if the current call stack contains a function that's inside an active tracing region.  
+Similarly, when set to `REGION,ERROR`, stack traces are printed inside tracing regions only if an error is passed to `dlg.Printf`.
 
-# Compile-time configuration
-go build -tags dlg -ldflags "-X 'github.com/vvvvv/dlg.DLG_STACKTRACE=ERROR'"
+#### Basic Usage
+
+The simplest usage is to start and stop a trace around the code you want to inspect.  
+Any `dlg.Printf` calls made in that tracing region will include stack traces.
+
+Let's start with the most basic example:
+
+```go
+func main(){
+    dlg.StartTrace()
+    dlg.Printf("foobar")
+    dlg.StopTrace()
+}
 ```
 
-#### Suppressing the startup banner
-```bash
-DLG_NO_WARN=1 ./app-debug
-```
-**The debug banner cannot be disabled via linker flags. This prevents accidental deployment of debug builds to production.**
+**Output *`DLG_STACKTRACE=REGION,ALWAYS`***
 
-#### Concurrency Safety
+```
+16:14:39 [10µs] main.go:8: foobar
+main.main()
+    /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:8 +0x4b
+```
+
+#### Tracing Across Functions
+
+Tracing isn't limited to a single function. Once a tracing region is started, it covers all functions called within that region until it's stopped.
+This means you can start tracing in main() and see traces for calls deeper in the stack.
+
+```go 
+
+func foo(){
+    dlg.Printf("hello from foo")
+}
+
+func main(){
+    dlg.Printf("outside of tracing region")
+
+    dlg.StartTrace()
+    dlg.Printf("started tracing")
+    foo()
+    dlg.StopTrace()
+}
+```
+
+**Output *`DLG_STACKTRACE=REGION,ALWAYS`***
+
+```
+16:19:35 [1µs] main.go:11: outside of tracing region
+16:19:35 [30µs] main.go:14: started tracing
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:14 +0x67
+16:19:35 [43µs] main.go:7: hello from foo
+main.foo()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:7 +0x87
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:15 +0x68
+```
+
+
+#### Error Tracing
+
+If you only want stack traces when an error occurs inside a tracing region, set `DLG_STACKTRACE=REGION,ERROR`.
+In this mode, traces appear only for `dlg.Printf` calls that include an error argument.
+
+```go 
+
+func main(){
+    dlg.StartTrace()
+
+    dlg.Printf("starting...")
+
+    err := fmt.Errorf("this is an error") 
+
+    dlg.Printf("oh no an error: %v", err)
+
+    dlg.StopTrace()
+}
+
+
+```
+
+**Output *`DLG_STACKTRACE=REGION,ERROR`***
+
+```
+16:24:20 [3µs] main.go:15: starting...
+16:24:20 [29µs] main.go:19: oh no an error: this is an error
+main.main()
+    /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:19 +0x97
+```
+
+#### Understanding Tracing Region Scopes
+
+A tracing region is tied to the function scope that called `StartTrace`.
+If you call `StopTrace()` inside a nested function, the tracing region remains active as the region was started from the outer scope.
+
+```go
+func main(){
+    dlg.StartTrace()
+
+    dlg.Printf("starting...")
+
+    fn := func(){
+        dlg.Printf("hello from fn")
+
+        dlg.StopTrace()
+    }
+
+    fn()
+
+    dlg.Printf("this will still produce a stack trace")
+
+    dlg.StopTrace()
+}
+
+```
+
+**Output *`DLG_STACKTRACE=REGION,ALWAYS`***
+
+```
+16:28:27 [12µs] main.go:15: starting...
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:15 +0x4b
+16:28:27 [43µs] main.go:18: hello from fn
+main.main.func1()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:18 +0x6b
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:22 +0x4c
+16:28:27 [49µs] main.go:24: this will still produce a stack trace
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:24 +0x9f
+```
+
+
+#### Stopping a Tracing Region from Another Function
+
+To close a tracing region from a nested function, you need to start and stop it with a matching key.
+This allows you to end exactly the tracing region you intended, even from different scopes.
+
+
+```go
+func main(){
+    dlg.StartTrace(1)
+
+    dlg.Printf("starting...")
+
+    fn := func(){
+        dlg.Printf("hello from fn")
+
+        dlg.StopTrace(1)
+    }
+
+    fn()
+
+    dlg.Printf("this won't trace")
+}
+
+```
+
+**Output *`DLG_STACKTRACE=REGION,ALWAYS`***
+
+```
+16:34:07 [9µs] main.go:15: starting...
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:15 +0x6b
+16:34:07 [33µs] main.go:18: hello from fn
+main.main.func1()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:18 +0x8b
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:23 +0x6c
+16:34:07 [48µs] main.go:25: this won't trace
+```
+
+#### Choosing a Key
+
+You can use any type as a tracing key: integers, strings, floats, even structs.
+For clarity, it's best to keep keys simple, such as short strings or integers.
+
+```go
+
+dlg.StartTrace("foo")
+...
+dlg.StopTrace("foo")
+
+
+dlg.StartTrace(7.2)
+...
+dlg.StopTrace(7.2)
+
+
+dlg.StartTrace(struct{name string}{name: "tracing region"})
+...
+
+dlg.StopTrace(struct{name string}{name: "tracing region"})
+```
+
+#### Stopping Without a Key
+
+`StopTrace()` without arguments will end the most recent active tracing region, even if it was started with a key - as long as you call it from the same scope.
+
+```go
+func main(){
+    dlg.StartTrace(1)
+
+    dlg.Printf("this will trace")
+
+    dlg.StopTrace()
+
+    dlg.Printf("this won't trace")
+}
+```
+
+**Output *`DLG_STACKTRACE=REGION,ALWAYS`***
+
+```
+16:47:04 [10µs] main.go:14: this will trace
+main.main()
+        /Users/v/src/go/src/github.com/vvvvv/dlg/examples/example08/main.go:14 +0x6b
+16:47:04 [34µs] main.go:18: this won't trace
+```
+
+> 💡 All tracing regions, whether keyed or not, are closed in LIFO *(last-in, first-out)*  order.
+
+#### ⚠️ Why You Should Avoid `defer StopTrace()`
+
+It might be tempting to wrap `dlg.StopTrace()` in a `defer`, but don't.
+The Go compiler cannot eliminate `defer` calls. Even something as trivial as `defer func(){}()` remains as a real function call in the compiled binary.
+If you want true zero-cost elimination, call `StopTrace` directly.
+
+*For more examples of tracing regions, see /tests/stacktraceregion/region_test.go.*
+
+
+### Concurrency Safety for Custom Writers
 
 While `dlg.Printf` is safe for concurrent use, custom writers should implement [sync.Locker](https://pkg.go.dev/sync#Locker).
 
@@ -159,6 +394,66 @@ func main() {
 	fmt.Print(sb.Buffer.String())
 }
 ```
+
+### Configuration
+
+`dlg` can be configured at runtime *(environment variables)* or at compile time *(linker flags)*.
+Compile-time settings win over runtime.
+Settings configured at compile time cannot be overridden at runtime.
+
+|  Variable          | Runtime-configurable | Compile-time-configurable | Description                             |
+| ------------------ | -------------------- | --------------------------| --------------------------------------- |
+| DLG_STACKTRACE     | ✔︎                    | ✔︎                         | Controls when stack traces are shown    |
+| DLG_COLOR          | ✘                    | ✔︎                         | Sets output color for file/line         |
+| DLG_NO_WARN        | ✔︎                    | ✘                         | Suppresses debug banner                 |
+
+
+**DLG_STACKTRACE - Controls when to generate stack traces**
+
+*Runtime:*
+```bash
+# Errors only
+DLG_STACKTRACE=ERROR         ./app-debug
+# Every call
+DLG_STACKTRACE=ALWAYS        ./app-debug
+# Errors within tracing region
+DLG_STACKTRACE=REGION,ERROR  ./app-debug
+# Every call within tracing region
+DLG_STACKTRACE=REGION,ALWAYS ./app-debug
+```
+
+
+*Compile-time:*
+```bash
+go build -tags dlg -ldflags "-X 'github.com/vvvvv/dlg.DLG_STACKTRACE=ERROR'"
+go build -tags dlg -ldflags "-X 'github.com/vvvvv/dlg.DLG_STACKTRACE=REGION,ALWAYS'"
+```
+
+**DLG_NO_WARN - Suppress the debug startup banner**  
+
+*Runtime:*
+```bash
+DLG_NO_WARN=1 ./app-debug
+```
+> The debug banner cannot be disabled via linker flags. This prevents accidental deployment of debug builds to production.
+
+**DLG_COLOR - Highlight file name & line number**  
+
+*Compile-time:*
+```bash
+# Set the color to ANSI color red.
+go build -tags dlg -ldflags "-X 'github.com/vvvvv/dlg.DLG_COLOR=red'"
+# Set the color to ANSI color 4.
+go build -tags dlg -ldflags "-X 'github.com/vvvvv/dlg.DLG_COLOR=4'"
+# Set raw ANSI color.
+go build -tags dlg -ldflags "-X 'github.com/vvvvv/dlg.DLG_COLOR=\033[38;2;250;3;250m'"
+```
+> This setting respects the `NO_COLOR` convention
+
+Valid color values: 
+- Named: *black, red, green, yellow, blue, magenta, cyan, white*
+- ANSI: *0 - 255*
+- Raw ANSI color escape sequences
 
 ### True Zero-Cost Elimination
 
@@ -267,15 +562,15 @@ dlg.Printf("call to fn: %v", fmt.Errorf("some error"))
 ```
 
 
-### ⚡️Rule of thumb:
+### ⚡️Rule of Thumb:
 **Avoid placing function calls or expensive computations directly inside `dlg.Printf`.**
 
 As long as you follow this principle, `dlg` maintains its promise:  
-*No instructions.*  
+***No instructions.*  
 *No references.*  
 *Zero memory allocations.*  
 *Zero CPU cycles used.*  
 *identical binary size to code without `dlg`.*  
-*True zero-cost.*
+*True zero-cost.***
 
-[^1]: There's a bit more nuance to this - if a function is side-effect free and returns a basic type (e.g., `int`, `string`), the compiler may still eliminate the function call.*
+[^1]: There's a bit more nuance to this - if a function is side-effect free and returns a basic type (e.g., `int`, `string`), the compiler may still eliminate the function call.
