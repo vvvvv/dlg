@@ -49,3 +49,4 @@ clean:
 	rm -f ./examples/example03/example03.dlg.bin
 	rm -f ./examples/example03/example03.dlg.objdump
 	rm -f ./examples/example03/example03.objdump
+	rm -f ./examples/example04/example04.dlg.bin
