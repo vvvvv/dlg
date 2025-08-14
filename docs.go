@@ -69,11 +69,6 @@ Including stack traces in the output we simply set an environment variable when 
 	starting...
 	01:31:34 [2µs] main.go:16: executing risky operation
 	01:31:34 [21µs] main.go:19: something failed: unexpected error
-	goroutine 1 [running]:
-	github.com/vvvvv/dlg.writeStack(0x14000104ec0)
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:86 +0x84
-	github.com/vvvvv/dlg.Printf({0x1002d25f4, 0x14}, {0x14000104f18, 0x1, 0x1})
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:50 +0x170
 	main.main()
 		/Users/v/src/go/src/github.com/vvvvv/dlg/examples/example01/main.go:19 +0xc0
 
@@ -85,29 +80,14 @@ Including stack traces every time Printf is called:
 
 	starting...
 	01:35:47 [2µs] main.go:16: executing risky operation
-	goroutine 1 [running]:
-	github.com/vvvvv/dlg.writeStack(0x1400010aec0)
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:86 +0x84
-	github.com/vvvvv/dlg.Printf({0x102f37711, 0x19}, {0x0, 0x0, 0x0})
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:50 +0x170
 	main.main()
 		/Users/v/src/go/src/github.com/vvvvv/dlg/examples/example01/main.go:16 +0x6c
 
 	01:35:47 [34µs] main.go:19: something failed: unexpected error
-	goroutine 1 [running]:
-	github.com/vvvvv/dlg.writeStack(0x1400010aec0)
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:86 +0x84
-	github.com/vvvvv/dlg.Printf({0x102f365f4, 0x14}, {0x1400010af18, 0x1, 0x1})
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:50 +0x170
 	main.main()
 		/Users/v/src/go/src/github.com/vvvvv/dlg/examples/example01/main.go:19 +0xc0
 
 	01:35:47 [41µs] main.go:22: continuing
-	goroutine 1 [running]:
-	github.com/vvvvv/dlg.writeStack(0x1400010aec0)
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:86 +0x84
-	github.com/vvvvv/dlg.Printf({0x102f34985, 0xb}, {0x0, 0x0, 0x0})
-		/Users/v/src/go/src/github.com/vvvvv/dlg/printf.go:50 +0x170
 	main.main()
 		/Users/v/src/go/src/github.com/vvvvv/dlg/examples/example01/main.go:22 +0xdc
 
