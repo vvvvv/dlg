@@ -13,12 +13,15 @@ func risky() error {
 func main() {
 	fmt.Println("starting...")
 
-	dlg.StartTrace()
 	dlg.Printf("executing risky operation")
 	err := risky()
 	if err != nil {
-		dlg.Printf("something failed: %v", err)
+		dlg.Printf("something failed but we don't trace it: %v", err)
 	}
+
+	dlg.StartTrace()
+	dlg.Printf("now we trace it")
+	dlg.Printf("where did that error come from again?: %v", err)
 	dlg.StopTrace()
 
 	dlg.Printf("continuing")
