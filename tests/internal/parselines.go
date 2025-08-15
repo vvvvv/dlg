@@ -38,7 +38,7 @@ var (
 	//                                v everything until there (including possible stack traces)
 	//  00:09:45 [4µs] main.go:16: foo 01:19:55 [8s] main.go:36: bar
 	logLineRegexp = regexp.MustCompile(`\d{2}:\d{2}:\d{2}\s+\[[^\]]+\]\s+\S+\.go:\d+:\s+.*?`)
-	traceRegexp = regexp.MustCompile(`(?:\S+\([^)]*\)\s+\S+\.go:\d+\s+\+0x[0-9A-Fa-f]+\s+)+`)
+	traceRegexp   = regexp.MustCompile(`(?:\S+\([^)]*\)\s+\S+\.go:\d+\s+\+0x[0-9A-Fa-f]+\s+)+`)
 
 	logSingleLineRegexp = regexp.MustCompile(`\d{2}:\d{2}:\d{2}\s+\[\d+\.?\d*.?s\]\s+\w+\.go:\d+:\s(.*)$`)
 )
