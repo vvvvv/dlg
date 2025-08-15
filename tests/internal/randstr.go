@@ -17,8 +17,6 @@ func RandomString(n int) string {
 
 	encoder.Encode(dst, randomBytes)
 
-	// str := string(dst[:n]) + "%v %v"
-	// return str
 	return string(dst[:n])
 }
 

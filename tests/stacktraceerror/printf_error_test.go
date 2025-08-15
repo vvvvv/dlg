@@ -10,8 +10,6 @@ import (
 	"github.com/vvvvv/dlg/tests/internal"
 )
 
-var funcName = "dlg/tests/stacktraceerror.TestPrintfStackTraceOnError"
-
 func TestPrintfStackTraceOnError(t *testing.T) {
 	out := internal.CaptureOutput(func() {
 		dlg.Printf("message with error: %v", errors.New("some error"))

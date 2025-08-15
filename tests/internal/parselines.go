@@ -37,12 +37,8 @@ var (
 	// This matches:
 	//                                v everything until there (including possible stack traces)
 	//  00:09:45 [4µs] main.go:16: foo 01:19:55 [8s] main.go:36: bar
-	// logLineRegexp = regexp.MustCompile(`\d{2}:\d{2}:\d{2}\s+\[\d+\.?\d*.?s\]\s+\w+\.go:\d+:\s+.*?`)
-	// logLineRegexp = regexp.MustCompile(`\d{2}:\d{2}:\d{2}\s+\[\d+\.?\d*.?s\]\s+\S+\.go:\d+:\s+.*?`)
 	logLineRegexp = regexp.MustCompile(`\d{2}:\d{2}:\d{2}\s+\[[^\]]+\]\s+\S+\.go:\d+:\s+.*?`)
-	// traceRegexp   = regexp.MustCompile(`goroutine \d+ \[running\]:`)
 	traceRegexp = regexp.MustCompile(`(?:\S+\([^)]*\)\s+\S+\.go:\d+\s+\+0x[0-9A-Fa-f]+\s+)+`)
-	// traceRegexp = regexp.MustCompile(`(?:[A-Za-z0-9_/.-]+\S+.go:\d+\s+\+0x[0-9A-Fa-f]+\s*)+`)
 
 	logSingleLineRegexp = regexp.MustCompile(`\d{2}:\d{2}:\d{2}\s+\[\d+\.?\d*.?s\]\s+\w+\.go:\d+:\s(.*)$`)
 )
@@ -96,91 +92,3 @@ func ParseLines(b []byte) []logline {
 
 	return loglines
 }
-
-// // working partially
-// func parseLines(b []byte) []logline {
-// 	// Replace all newlines in order to have a single line of log output
-// 	b = bytes.ReplaceAll(b, []byte("\n"), []byte(" "))
-// 	r := bytes.NewReader(b)
-//
-// 	scanner := bufio.NewScanner(r)
-// 	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-// 		locs := logLineRegexp.FindAllIndex(data, -1)
-//
-// 		switch {
-// 		case len(locs) >= 2:
-// 			from, to := locs[0][0], locs[1][0]
-// 			return to, data[from:to], nil
-//
-// 		case len(locs) == 1:
-// 			if atEOF {
-// 				from := locs[0][0]
-// 				return len(data), data[from:], nil
-// 			}
-// 			// need more data to know the end boundary
-// 			return 0, nil, nil
-//
-// 		default:
-// 			if atEOF {
-// 				return 0, nil, nil
-// 			}
-// 			return 0, nil, nil
-// 		}
-// 	})
-//
-// 	loglines := make([]logline, 0, 32)
-// 	for scanner.Scan() {
-// 		line := scanner.Bytes()
-// 		loc := traceRegexp.FindIndex(line)
-// 		if loc == nil {
-// 			// Not a line with stack trace
-// 			loglines = append(loglines, logline{line: string(line)})
-// 		} else {
-// 			loglines = append(loglines, logline{
-// 				line:  string(line[:loc[0]]),
-// 				trace: string(line[loc[0]:]),
-// 			})
-// 		}
-// 	}
-//
-// 	return loglines
-// }
-//
-// // almost working
-// func parseLines(b []byte) []logline {
-// 	// Replace all newlines in order to have a single line of log output
-// 	b = bytes.ReplaceAll(b, []byte("\n"), []byte(" "))
-// 	r := bytes.NewReader(b)
-//
-// 	scanner := bufio.NewScanner(r)
-// 	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-// 		locs := logLineRegexp.FindAllIndex(data, -1)
-// 		if locs == nil || len(locs) < 2 {
-// 			return 0, data, bufio.ErrFinalToken
-// 		}
-//
-// 		// from is the start of the match.
-// 		// to is the start of the next match.
-// 		// This way possible stack trace lines get included.
-// 		from, to := locs[0][0], locs[1][0]
-//
-// 		return to, data[from:to], nil
-// 	})
-//
-// 	loglines := make([]logline, 0, 32)
-// 	for scanner.Scan() {
-// 		line := scanner.Bytes()
-// 		loc := traceRegexp.FindIndex(line)
-// 		if loc == nil {
-// 			// Not a line with stack trace
-// 			loglines = append(loglines, logline{line: string(line)})
-// 		} else {
-// 			loglines = append(loglines, logline{
-// 				line:  string(line[:loc[0]]),
-// 				trace: string(line[loc[0]:]),
-// 			})
-// 		}
-// 	}
-//
-// 	return loglines
-// }

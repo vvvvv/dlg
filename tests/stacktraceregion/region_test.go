@@ -401,7 +401,6 @@ func TestPrintfStackTraceRegion(t *testing.T) {
 				want := tc.exp[i]
 				got := lines[i]
 
-				// t.Errorf("got: %#v", got)
 				if want.line != got.Line() || want.trace != got.HasTrace() {
 					t.Errorf("Mismatch: want: %q (stacktrace: %v) ; got: %q (stacktrace: %v)", want.line, want.trace, got.Line(), got.HasTrace())
 				}

@@ -3,8 +3,6 @@
 package stacktraceregiononerror_test
 
 import (
-	// "bufio"
-
 	"fmt"
 	"testing"
 
