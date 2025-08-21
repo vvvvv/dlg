@@ -1,2 +1,3 @@
 *.bin
 *.objdump
+.DS_Store

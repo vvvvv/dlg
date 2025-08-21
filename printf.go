@@ -9,12 +9,14 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 const stackBufSize = 1024
 
 var (
+	writeOutput atomic.Value
 	// Initial Printf buffer size
 	bufSize = 128
 
@@ -63,7 +65,8 @@ func Printf(f string, v ...any) {
 		}
 	}
 
-	writeOutput(b)
+	writeOut := writeOutput.Load().(writeOutputFn)
+	writeOut(b)
 
 	// Remove buffers with a capacity greater than 32kb from the sync.Pool in order to keep the footprint small
 	if cap(b) >= (1 << 15) {
@@ -182,38 +185,36 @@ func hasError(args []any) bool {
 	return false
 }
 
-// writeOutput is the default output writer.
+type writeOutputFn func([]byte) (int, error)
+
+// defaultWriteOutput is the default output writer.
 // This function gets set by SetOutput.
-var writeOutput = func(buf []byte) (n int, err error) {
+var defaultWriteOutput = func(buf []byte) (n int, err error) {
 	return os.Stderr.Write(buf)
 }
-
-// Protects calls to SetOutput
-var mu sync.Mutex
 
 // SetOutput sets the output destination for Printf.
 // Defaults to os.Stderr.
 func SetOutput(w io.Writer) {
-	mu.Lock()
-	defer mu.Unlock()
-
 	if w == nil {
 		w = io.Discard
 	}
 
+	var fn writeOutputFn
 	if locker, ok := w.(sync.Locker); ok {
-		writeOutput = func(buf []byte) (n int, err error) {
+		fn = func(buf []byte) (n int, err error) {
 			locker.Lock()
 			n, err = w.Write(buf)
 			locker.Unlock()
 			return
 		}
-		return
+	} else {
+		fn = func(buf []byte) (int, error) {
+			return w.Write(buf)
+		}
 	}
 
-	writeOutput = func(buf []byte) (int, error) {
-		return w.Write(buf)
-	}
+	writeOutput.Store(fn)
 }
 
 func env(name string) (v string, ok bool) {
@@ -238,6 +239,11 @@ func init() {
 		// Initialize trace region store
 		callers := make([]caller, 0, 16)
 		callersStore.Store(callers)
+	}()
+
+	defer func() {
+		var writeOut writeOutputFn = defaultWriteOutput
+		writeOutput.Store(writeOut)
 	}()
 
 	// Controls whether the debug banner is printed at startup.
