@@ -4,6 +4,7 @@ package dlg
 
 import (
 	"bytes"
+	"strconv"
 	"strings"
 )
 
@@ -30,38 +31,36 @@ func colorReset(buf *[]byte) {
 //	"YELLOW"
 //	"Black"
 //	"\033[38;5;2m"
+//	"\x1b[38;5;2m"
 //	string([]byte{27, 91, 51, 56, 59, 53, 59, 49, 109})
 //	"3"
 //
 // The function does only naive validation and doesn't guaranty the returned sequence is a valid terminal escape sequence.
 func colorArgToTermColor(arg string) (color []byte, ok bool) {
+	// \033, \x1b or \u001b become a raw ESC byte
+	if s, err := strconv.Unquote(`"` + arg + `"`); err == nil {
+		arg = s
+	}
 	c := bytes.TrimSpace([]byte(arg))
 
 	if len(c) > 0 {
-		if c[0] == '\\' || c[0] == 27 {
-			// Starts with \ or ESC, assume it's a escaped term color
-			if len(c) >= 4 && bytes.Equal(c[:4], []byte("\\033")) {
-				_ = c[3:]
-				c = c[3:]
-				c[0] = 27
-				ok = true
-			}
-			return c, ok
+		if c[0] == 27 {
+			return c, true
 		} else {
-			is_number := (c[0] >= 48 && c[0] <= 57)
-			is_alpha := (c[0] >= 65 && c[0] <= 122)
+			isNumber := (c[0] >= 48 && c[0] <= 57)
+			isAlpha := (c[0] >= 65 && c[0] <= 122)
 
 			color = make([]byte, 0, 32)
 			// ESC
 			color = append(color, 27)
 			// Start of esc sequence
 			color = append(color, "[38;5;"...)
-			if is_number {
+			if isNumber {
 				// Assume it's a terminal color code e.g.
 				// 1 for red
 				ok = true
 				color = append(color, c...)
-			} else if is_alpha {
+			} else if isAlpha {
 				// Assume it's a color name
 				name := strings.ToLower(arg)
 				for i, n := range []string{"black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"} {
